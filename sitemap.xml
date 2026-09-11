@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://YOUR-DOMAIN.example/</loc></url>
+  <url><loc>https://YOUR-DOMAIN.example/#image-compressor</loc></url>
+  <url><loc>https://YOUR-DOMAIN.example/#image-resizer</loc></url>
+  <url><loc>https://YOUR-DOMAIN.example/#percentage</loc></url>
+  <url><loc>https://YOUR-DOMAIN.example/#json</loc></url>
+  <url><loc>https://YOUR-DOMAIN.example/#word-count</loc></url>
+  <url><loc>https://YOUR-DOMAIN.example/#age</loc></url>
+</urlset>
