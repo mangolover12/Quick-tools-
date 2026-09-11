@@ -1,28 +1,20 @@
-const $=id=>document.getElementById(id);
-$('quality').addEventListener('input',e=>$('qualityOut').value=e.target.value+'%');
-
-function loadImage(file){return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=reject;img.src=URL.createObjectURL(file)})}
-function downloadBlob(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.className='download';a.textContent='Download';document.body.appendChild(a)}
-
-$('compressBtn').onclick=async()=>{
- const f=$('compressFile').files[0]; if(!f)return $('compressResult').textContent='Choose an image first.';
- const img=await loadImage(f), c=document.createElement('canvas'); c.width=img.naturalWidth;c.height=img.naturalHeight;c.getContext('2d').drawImage(img,0,0);
- c.toBlob(b=>{ $('compressResult').innerHTML=`Original: ${(f.size/1024).toFixed(1)} KB → Result: ${(b.size/1024).toFixed(1)} KB`;downloadBlob(b,'compressed-image.jpg')},'image/jpeg',+$('quality').value/100);
-};
-
-$('resizeBtn').onclick=async()=>{
- const f=$('resizeFile').files[0]; if(!f)return $('resizeResult').textContent='Choose an image first.';
- const img=await loadImage(f); let w=+$('width').value,h=+$('height').value;
- if(!w&&!h)return $('resizeResult').textContent='Enter a width or height.';
- if(!w)w=Math.round(img.naturalWidth*(h/img.naturalHeight)); if(!h)h=Math.round(img.naturalHeight*(w/img.naturalWidth));
- const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img,0,0,w,h);
- c.toBlob(b=>{ $('resizeResult').textContent=`New size: ${w} × ${h}`;downloadBlob(b,'resized-image.jpg')},'image/jpeg',.88);
-};
-
-$('pctBtn').onclick=()=>{const p=+$('pct').value,n=+$('num').value;if(!Number.isFinite(p)||!Number.isFinite(n))return $('pctResult').textContent='Enter both numbers.';$('pctResult').textContent=`${p}% of ${n} = ${(p*n/100).toLocaleString()}`};
-
-$('jsonBtn').onclick=()=>{try{$('jsonResult').textContent=JSON.stringify(JSON.parse($('jsonInput').value),null,2)}catch(e){$('jsonResult').textContent='Invalid JSON: '+e.message}};
-
-$('textInput').addEventListener('input',()=>{const t=$('textInput').value.trim(),words=t?t.split(/\s+/).length:0;const chars=$('textInput').value.length;const mins=Math.max(0,Math.ceil(words/200));$('wordResult').textContent=`${words.toLocaleString()} words · ${chars.toLocaleString()} characters · ${mins} min read`});
-
-$('ageBtn').onclick=()=>{const s=$('dob').value;if(!s)return $('ageResult').textContent='Choose your date of birth.';const b=new Date(s+'T00:00:00'),now=new Date();let y=now.getFullYear()-b.getFullYear(),m=now.getMonth()-b.getMonth(),d=now.getDate()-b.getDate();if(d<0){m--;d+=new Date(now.getFullYear(),now.getMonth(),0).getDate()}if(m<0){y--;m+=12}$('ageResult').textContent=`You are ${y} years, ${m} months and ${d} days old.`};
+const $=id=>document.getElementById(id);const dl=(b,n)=>{const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=n;a.className="download";a.textContent="Download";document.body.appendChild(a)};const img=f=>new Promise((r,j)=>{const i=new Image();i.onload=()=>r(i);i.onerror=j;i.src=URL.createObjectURL(f)});
+if($("quality"))$("quality").oninput=e=>$("qualityOut").value=e.target.value+"%";
+if($("compressBtn"))$("compressBtn").onclick=async()=>{let f=$("compressFile").files[0];if(!f)return $("compressResult").textContent="Choose an image first.";let i=await img(f),c=document.createElement("canvas");c.width=i.naturalWidth;c.height=i.naturalHeight;c.getContext("2d").drawImage(i,0,0);c.toBlob(b=>{$("compressResult").textContent=`Original ${(f.size/1024).toFixed(1)} KB → ${(b.size/1024).toFixed(1)} KB`;dl(b,"compressed.jpg")},"image/jpeg",+$("quality").value/100)};
+if($("resizeBtn"))$("resizeBtn").onclick=async()=>{let f=$("resizeFile").files[0];if(!f)return $("resizeResult").textContent="Choose an image first.";let i=await img(f),w=+$("width").value,h=+$("height").value;if(!w&&!h)return $("resizeResult").textContent="Enter a width or height.";if(!w)w=Math.round(i.naturalWidth*h/i.naturalHeight);if(!h)h=Math.round(i.naturalHeight*w/i.naturalWidth);let c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(i,0,0,w,h);c.toBlob(b=>{dl(b,"resized.jpg");$("resizeResult").textContent=`New size: ${w} × ${h}`}, "image/jpeg",.9)};
+if($("convertBtn"))$("convertBtn").onclick=async()=>{let f=$("convertFile").files[0];if(!f)return $("convertResult").textContent="Choose an image first.";let i=await img(f),c=document.createElement("canvas");c.width=i.naturalWidth;c.height=i.naturalHeight;let x=c.getContext("2d");let fmt=$("convertBtn").dataset.format;if(fmt==="jpg"){x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height)}x.drawImage(i,0,0);let mime=fmt==="png"?"image/png":fmt==="webp"?"image/webp":"image/jpeg";c.toBlob(b=>{dl(b,"converted."+fmt);$("convertResult").textContent="Conversion complete."},mime,+($("convertQuality")?.value||85)/100)};
+if($("pctBtn"))$("pctBtn").onclick=()=>{$("pctResult").textContent=(+$("pct").value*+$("num").value/100).toLocaleString()};
+if($("discountBtn"))$("discountBtn").onclick=()=>{let p=+$("price").value,d=+$("discount").value,s=p*d/100;$("discountResult").textContent=`You save ${s.toFixed(2)}. Final price: ${(p-s).toFixed(2)}.`};
+if($("marginBtn"))$("marginBtn").onclick=()=>{let r=+$("revenue").value,c=+$("cost").value;$("marginResult").textContent=`Profit: ${(r-c).toFixed(2)} · Margin: ${((r-c)/r*100).toFixed(2)}% · Markup: ${c?((r-c)/c*100).toFixed(2):"∞"}%`};
+if($("roiBtn"))$("roiBtn").onclick=()=>{let i=+$("investment").value,f=+$("finalValue").value;$("roiResult").textContent=`Profit: ${(f-i).toFixed(2)} · ROI: ${((f-i)/i*100).toFixed(2)}%`};
+if($("ageBtn"))$("ageBtn").onclick=()=>{let b=new Date($("dob").value+"T00:00:00"),n=new Date(),y=n.getFullYear()-b.getFullYear(),m=n.getMonth()-b.getMonth(),d=n.getDate()-b.getDate();if(d<0){m--;d+=new Date(n.getFullYear(),n.getMonth(),0).getDate()}if(m<0){y--;m+=12}$("ageResult").textContent=`${y} years, ${m} months and ${d} days`};
+if($("dateBtn"))$("dateBtn").onclick=()=>{$("dateResult").textContent=Math.abs(new Date($("endDate").value)-new Date($("startDate").value))/86400000+" days"};
+if($("textInput"))$("textInput").oninput=()=>{let t=$("textInput").value,w=t.trim()?t.trim().split(/\s+/).length:0;$("wordResult").textContent=`${w} words · ${t.length} characters · ${Math.ceil(w/200)} min read`};
+if($("jsonBtn"))$("jsonBtn").onclick=()=>{try{$("jsonResult").textContent=JSON.stringify(JSON.parse($("jsonInput").value),null,2)}catch(e){$("jsonResult").textContent="Invalid JSON: "+e.message}};
+if($("encodeBtn"))$("encodeBtn").onclick=()=>{$("base64Result").textContent=btoa(unescape(encodeURIComponent($("base64Input").value)))};
+if($("decodeBtn"))$("decodeBtn").onclick=()=>{try{$("base64Result").textContent=decodeURIComponent(escape(atob($("base64Input").value)))}catch(e){$("base64Result").textContent="Invalid Base64."}};
+if($("urlEncodeBtn"))$("urlEncodeBtn").onclick=()=>{$("urlResult").textContent=encodeURIComponent($("urlInput").value)};
+if($("urlDecodeBtn"))$("urlDecodeBtn").onclick=()=>{try{$("urlResult").textContent=decodeURIComponent($("urlInput").value)}catch(e){$("urlResult").textContent="Invalid encoded text."}};
+if($("uuidBtn"))$("uuidBtn").onclick=()=>{$("uuidResult").value=Array.from({length:Math.min(100,+$("uuidCount").value||1)},()=>crypto.randomUUID()).join("\n")};
+if($("timestampBtn"))$("timestampBtn").onclick=()=>{$("timestampResult").textContent=new Date((+$("timestamp").value||Math.floor(Date.now()/1000))*1000).toLocaleString()};
+if($("unitBtn"))$("unitBtn").onclick=()=>{let v=+$("unitValue").value,a=$("unitFrom").value,b=$("unitTo").value,f={meters:1,kilometers:.001,feet:3.280839895,miles:.000621371192,kilograms:1,pounds:2.20462262,megabytes:1,gigabytes:.001};$("unitResult").textContent=f[a]&&f[b]?`${v} ${a} = ${(v/f[a]*f[b]).toLocaleString(undefined,{maximumFractionDigits:8})} ${b}`:"Choose compatible units."};
